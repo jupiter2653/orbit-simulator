@@ -98,28 +98,7 @@ class aside(ScrollableFrame):
         objectFrames = []
         i = 0
         for name, so in self.root.spacialObjects.items():
-            objectFrames.append(tk.Frame(self.scrollable_frame,background="white",relief=tk.GROOVE,bd=1))
-            objectFrames[i].pack(side=tk.TOP,padx=5,pady=5)
-            
-            planetName = tk.Label(objectFrames[i], text=name,background="white",width=40)
-            planetName.grid(padx=5,pady=5,row=0,column=0,columnspan=6)
-        
-            #Mass
-            tk.Label( objectFrames[i], text="Massse :",background="white").grid(row=1,column=0)
-            massVar = tk.StringVar(value=so.mass)
-            tk.Entry( objectFrames[i], textvariable=massVar, width=5,bg="SystemButtonFace").grid(row=1,column=1)
-            tk.Label( objectFrames[i], text="kg",background="white").grid(row=1,column=2)
-            
-            #Speed
-            tk.Label( objectFrames[i], text="Vitesse :",background="white").grid(row=2,column=0)
-            speedVar = tk.StringVar(value=so.speed)
-            tk.Entry( objectFrames[i], textvariable=speedVar, width=5,bg="SystemButtonFace").grid(row=2,column=1)
-            tk.Label( objectFrames[i], text="m/s",background="white").grid(row=2,column=2)
-            
-            #Color
-            tk.Label( objectFrames[i], text="Coleur :",background="white").grid(row=3,column=0)
-            self.colorB = tk.Button(objectFrames[i], text="   ", command=lambda: self.changeColor(i),width=2, bg=so.color, relief= "flat")
-            self.colorB.grid(row=3,column=1)
+            objectFrames.append(objectFrame(self.scrollable_frame,name,so))
             i+=1
             
     def showAddObject(self):
@@ -127,12 +106,42 @@ class aside(ScrollableFrame):
         addObjectWindow(root)
         root.mainloop()
         
-    def changeColor(self,name):
-        print(name)
-        self.root.spacialObjects[name].color = tk.colorchooser.askcolor()[1]
-        self.colorB.configure(bg = self.root.spacialObjects[name].color)
 
 
+
+class objectFrame(tk.Frame):
+    def __init__(self, root,name,so):
+        self.name = name
+        self.so = so
+        self.root = root
+        
+        super().__init__(root,background="white",relief=tk.GROOVE,bd=1)
+        self.pack(side=tk.TOP,padx=5,pady=5)
+        
+        tk.Label(self, text=name,background="white",width=40).grid(padx=5,pady=5,row=0,column=0,columnspan=6)
+    
+        #Mass
+        tk.Label(self, text="Massse :",background="white").grid(row=1,column=0)
+        massVar = tk.StringVar(value=so.mass)
+        tk.Entry( self, textvariable=massVar, width=5,bg="SystemButtonFace").grid(row=1,column=1)
+        tk.Label( self, text="kg",background="white").grid(row=1,column=2)
+        
+        #Speed
+        tk.Label( self, text="Vitesse :",background="white").grid(row=2,column=0)
+        speedVar = tk.StringVar(value=so.speed)
+        tk.Entry( self, textvariable=speedVar, width=5,bg="SystemButtonFace").grid(row=2,column=1)
+        tk.Label( self, text="m/s",background="white").grid(row=2,column=2)
+        
+        #Color
+        tk.Label( self, text="Coleur :",background="white").grid(row=3,column=0)
+        self.colorB = tk.Button(self, text="   ", command=self.changeColor,width=2, bg=so.color, relief= "flat")
+        self.colorB.grid(row=3,column=1)
+        
+    def changeColor(self):
+        newColor = tk.colorchooser.askcolor()[1]
+        if len(newColor) > 0:
+            self.so.color = newColor
+            self.colorB.configure(bg = newColor)
        
 class addObjectWindow(tk.Frame):
     def __init__(self, fenetre, **kwargs):
