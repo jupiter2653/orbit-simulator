@@ -10,4 +10,4 @@ For each frame, the system compute the position of each object in the next frame
 - @jupiter2653
 
 ## Can I download it ?
-You can't for the moment. We are actively working on this project and we hope to finish it aorund the 15th of June. Come back to get the news !
+You can't for the moment. We are actively working on this project and we hope to finish it around the 15th of June. Come back to get the news !
