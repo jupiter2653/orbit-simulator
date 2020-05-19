@@ -139,7 +139,7 @@ class objectFrame(tk.Frame):
         
     def changeColor(self):
         newColor = tk.colorchooser.askcolor()[1]
-        if len(newColor) > 0:
+        if newColor is not None:
             self.so.color = newColor
             self.colorB.configure(bg = newColor)
        
