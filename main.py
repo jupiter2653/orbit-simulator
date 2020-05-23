@@ -2,25 +2,63 @@
 import tkinter as tk
 import numpy as np
 import tkinter.colorchooser
-
+import math as m
 
 class SpacialObject:
-    def __init__(self, radius, mass, x, y, color):
+    def __init__(self, radius, mass, x, y, color,mvt):
         self.radius = radius
         self.mass = mass
         self.x = x
         self.y = y
         self.speed = 0
-        self.deplacementVector = np.array([0.1, 0.1])
+        self.deplacementVector = np.array(mvt, dtype='float64')
         self.color = color
+        self.appliedForces = []
 
-    def move(self, v):
-        self.x += v[0]
-        self.y += v[1]
+    def move(self):
+        deltaV = self.getDeltaV()
+        self.deplacementVector = self.deplacementVector + deltaV
+        self.x += self.getCarthesian()[0]
+        self.y += self.getCarthesian()[1]
 
-    def update(self):
-        self.move(self.deplacementVector)
-
+    def applyForces(self,spacialObjects):
+        for name,so in spacialObjects.items():
+            if so != self:
+                u = self.getUnitVector(so.x,so.y,self.x,self.y)
+                u *=self.getGravity(self.mass,so.mass,self.norme((self.x-so.x,self.y-so.y)))
+                so.applied(u)
+                
+    def drawVectors(self,c):
+        for v in self.appliedForces:
+            c.create_line(self.x, self.y, self.x+v[0], self.y+v[1], fill='white')
+            
+        c.create_line(self.x, self.y, self.x+self.getCarthesian()[0]*20, self.y+self.getCarthesian()[1]*20, fill='green')
+        
+    def getCarthesian(self):
+        return self.deplacementVector
+    
+    def getPolar(self):
+        return (self.norme(self.getCarthesian()),
+                m.arctan(self.getCarthesian()[1]/self.getCarthesian()[0]))
+    
+    def norme(self,v):
+        return m.sqrt(v[0]**2+v[1]**2)
+    
+    def getUnitVector(self, x1,y1,x2,y2):
+        a = (x2-x1,y2-y1)
+        aBar = self.norme(a)
+        u = np.array((a[0]/aBar,a[1]/aBar))
+        return u
+    
+    def getGravity(self,m1,m2,d):
+        return 6.674*10**(-11)*((m1*m2)/d**2)
+    
+    def applied(self, f):
+        self.appliedForces.append(f)
+        
+    def getDeltaV(self):
+        sumForces = np.sum(self.appliedForces, axis=0)
+        return sumForces*300/self.mass
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, container, *args, **kwargs):
@@ -50,8 +88,8 @@ class mainInterface(tk.Frame):
         self.pack(fill=tk.BOTH, expand=True)
 
         self.spacialObjects = {
-                "Earth": SpacialObject(10, 50, 50, 50, "blue"),
-                "Mars": SpacialObject(5, 25, 100, 50, "Red")
+                "Earth": SpacialObject(5, 6*10**4, 200, 300, "blue",[0,-6]),
+                "Sun": SpacialObject(5, 2*10**10, 300, 300, "yellow",[0,0])
             }
         self.shownSection = section(self)
         self.shownAside = aside(self)
@@ -68,12 +106,18 @@ class section(tk.Canvas):
 
     def drawCanvas(self):
         self.delete("all")
+        # On aplique chaque force de chaque objet
         for name, so in self.root.spacialObjects.items():
-            so.update()
+            so.applyForces(self.root.spacialObjects)
+        
+        # On fait déplace puis dessine chaque objet
+        for name, so in self.root.spacialObjects.items():
+            #so.drawVectors(self)
+            so.move()
             self.create_text(so.x, so.y+so.radius+5, text=name, fill="white")
             self.showSpacialObject(so)
         self.i += 1
-        self.after(10, self.drawCanvas)
+        self.after(41, self.drawCanvas)
 
     def showSpacialObject(self, so):
         self.drawCircle(so.radius, so.x, so.y, so.color)
