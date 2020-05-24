@@ -4,6 +4,9 @@ import numpy as np
 import tkinter.colorchooser
 import math as m
 
+ECHELLE_DIST = 1000 # 1px <-> ECHELLE_DIST m
+ECHELLE_TPS = 300 # 1 frame <-> ECHELLE_TPS s
+
 class SpacialObject:
     def __init__(self, radius, mass, x, y, color,mvt):
         self.radius = radius
@@ -18,20 +21,23 @@ class SpacialObject:
     def move(self):
         deltaV = self.getDeltaV()
         self.deplacementVector = self.deplacementVector + deltaV
-        self.x += self.getCarthesian()[0]
-        self.y += self.getCarthesian()[1]
+        self.x += self.deplacementVector[0]
+        self.y += self.deplacementVector[1]
+        self.appliedForces = []
 
     def applyForces(self,spacialObjects):
         for name,so in spacialObjects.items():
             if so != self:
                 u = self.getUnitVector(so.x,so.y,self.x,self.y)
-                u *=self.getGravity(self.mass,so.mass,self.norme((self.x-so.x,self.y-so.y)))
+                u *=self.getGravity(self.mass,so.mass,self.norme((self.x-so.x,self.y-so.y))*ECHELLE_DIST)
                 so.applied(u)
                 
     def drawVectors(self,c):
         for v in self.appliedForces:
             c.create_line(self.x, self.y, self.x+v[0], self.y+v[1], fill='white')
-            
+        
+        s = np.sum(self.appliedForces, axis=0)
+        c.create_line(self.x, self.y, self.x+s[0], self.y+s[1], fill='yellow')
         c.create_line(self.x, self.y, self.x+self.getCarthesian()[0]*20, self.y+self.getCarthesian()[1]*20, fill='green')
         
     def getCarthesian(self):
@@ -58,7 +64,7 @@ class SpacialObject:
         
     def getDeltaV(self):
         sumForces = np.sum(self.appliedForces, axis=0)
-        return sumForces*300/self.mass
+        return sumForces*ECHELLE_TPS/self.mass
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, container, *args, **kwargs):
@@ -88,8 +94,8 @@ class mainInterface(tk.Frame):
         self.pack(fill=tk.BOTH, expand=True)
 
         self.spacialObjects = {
-                "Earth": SpacialObject(5, 6*10**4, 200, 300, "blue",[0,-6]),
-                "Sun": SpacialObject(5, 2*10**10, 300, 300, "yellow",[0,0])
+                "Earth": SpacialObject(5, 6*10**4, 200, 300, "blue",[0,5]),
+                "Sun": SpacialObject(5, 2*10**17, 300, 300, "yellow",[0,0])
             }
         self.shownSection = section(self)
         self.shownAside = aside(self)
