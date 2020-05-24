@@ -17,12 +17,16 @@ class SpacialObject:
         self.deplacementVector = np.array(mvt, dtype='float64')
         self.color = color
         self.appliedForces = []
+        self.lastPos = []
 
     def move(self):
         deltaV = self.getDeltaV()
         self.deplacementVector = self.deplacementVector + deltaV
         self.x += self.deplacementVector[0]
         self.y += self.deplacementVector[1]
+        self.lastPos.append((self.x,self.y))
+        if len(self.lastPos) >= 200:
+            self.lastPos = self.lastPos[-200:]
         self.appliedForces = []
 
     def applyForces(self,spacialObjects):
@@ -38,7 +42,11 @@ class SpacialObject:
         
         s = np.sum(self.appliedForces, axis=0)
         c.create_line(self.x, self.y, self.x+s[0], self.y+s[1], fill='yellow')
-        c.create_line(self.x, self.y, self.x+self.getCarthesian()[0]*20, self.y+self.getCarthesian()[1]*20, fill='green')
+        c.create_line(self.x, self.y, self.x+self.getCarthesian()[0]*5, self.y+self.getCarthesian()[1]*5, fill='green')
+        
+    def drawLastPos(self,c):
+        for i in range(1,len(self.lastPos)):
+            c.create_line(self.lastPos[i][0], self.lastPos[i][1], self.lastPos[i-1][0], self.lastPos[i-1][1], fill=self.color)
         
     def getCarthesian(self):
         return self.deplacementVector
@@ -94,8 +102,10 @@ class mainInterface(tk.Frame):
         self.pack(fill=tk.BOTH, expand=True)
 
         self.spacialObjects = {
-                "Earth": SpacialObject(5, 6*10**4, 200, 300, "blue",[0,5]),
-                "Sun": SpacialObject(5, 2*10**17, 300, 300, "yellow",[0,0])
+                "Earth": SpacialObject(5, 3*10**16, 200, 200, "blue",[1,0]),
+                "Sun": SpacialObject(5, 3*10**16, 300, 300, "yellow",[-1,0])
+                #"Mars": SpacialObject(5, 10**5, 400, 300, "red",[0,-6]),
+                #"Jsp": SpacialObject(5, 10**4, 500, 300, "white",[3,3]),
             }
         self.shownSection = section(self)
         self.shownAside = aside(self)
@@ -122,6 +132,7 @@ class section(tk.Canvas):
             so.move()
             self.create_text(so.x, so.y+so.radius+5, text=name, fill="white")
             self.showSpacialObject(so)
+            so.drawLastPos(self)
         self.i += 1
         self.after(41, self.drawCanvas)
 
