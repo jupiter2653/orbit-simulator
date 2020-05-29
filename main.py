@@ -5,7 +5,7 @@ import tkinter.colorchooser
 import math as m
 
 ECHELLE_DIST = 1000 # 1px <-> ECHELLE_DIST m
-ECHELLE_TPS = 300 # 1 frame <-> ECHELLE_TPS s
+ECHELLE_TPS = 600 # 1 frame <-> ECHELLE_TPS s
 
 class SpacialObject:
     def __init__(self, radius, mass, x, y, color,mvt):
@@ -18,9 +18,15 @@ class SpacialObject:
         self.color = color
         self.appliedForces = []
         self.lastPos = []
+        self.objectFrame = 0
 
     def move(self):
         deltaV = self.getDeltaV()
+        try :
+            if not self.objectFrame.isSpeedPaused:
+                self.objectFrame.speedVar.set(round(self.getSpeed(),3))
+        except AttributeError:
+            pass
         self.deplacementVector = self.deplacementVector + deltaV
         self.x += self.deplacementVector[0]
         self.y += self.deplacementVector[1]
@@ -38,11 +44,11 @@ class SpacialObject:
                 
     def drawVectors(self,c):
         for v in self.appliedForces:
-            c.create_line(self.x, self.y, self.x+v[0], self.y+v[1], fill='white')
+            c.create_line(self.x, self.y, self.x+v[0]/50, self.y+v[1]/50, fill='white')
         
         s = np.sum(self.appliedForces, axis=0)
         c.create_line(self.x, self.y, self.x+s[0], self.y+s[1], fill='yellow')
-        c.create_line(self.x, self.y, self.x+self.getCarthesian()[0]*5, self.y+self.getCarthesian()[1]*5, fill='green')
+        c.create_line(self.x, self.y, self.x+self.getCarthesian()[0], self.y+self.getCarthesian()[1], fill='green')
         
     def drawLastPos(self,c):
         for i in range(1,len(self.lastPos)):
@@ -73,6 +79,14 @@ class SpacialObject:
     def getDeltaV(self):
         sumForces = np.sum(self.appliedForces, axis=0)
         return sumForces*ECHELLE_TPS/self.mass
+    
+    def getSpeed(self):
+        return self.norme(self.deplacementVector)*ECHELLE_DIST/ECHELLE_TPS
+    
+    def setSpeed(self,s):
+        self.deplacementVector = self.getUnitVector(0,0,self.deplacementVector[0],self.deplacementVector[1])*s
+        return self.deplacementVector
+        
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, container, *args, **kwargs):
@@ -102,10 +116,11 @@ class mainInterface(tk.Frame):
         self.pack(fill=tk.BOTH, expand=True)
 
         self.spacialObjects = {
-                "Earth": SpacialObject(5, 3*10**16, 200, 200, "blue",[1,0]),
-                "Sun": SpacialObject(5, 3*10**16, 300, 300, "yellow",[-1,0])
-                #"Mars": SpacialObject(5, 10**5, 400, 300, "red",[0,-6]),
-                #"Jsp": SpacialObject(5, 10**4, 500, 300, "white",[3,3]),
+                "Earth": SpacialObject(5, 3e16, 300, 200, "blue",[2,0]),
+                "Sun": SpacialObject(5, 3e16, 300, 350, "yellow",[-2,0]),
+                "Mars": SpacialObject(5, 0.0001, 300, 275, "red",[-1,-1])
+                #"Jsp": SpacialObject(5, 3*10**15, 200, 400, "white",[1,0]),
+                #"Jsp2": SpacialObject(5, 3*10**15, 500, 400, "white",[1,0]),
             }
         self.shownSection = section(self)
         self.shownAside = aside(self)
@@ -114,14 +129,16 @@ class mainInterface(tk.Frame):
 class section(tk.Canvas):
     def __init__(self, root, **kwargs):
         self.root = root
-
+        self.isPaused = False
         tk.Canvas.__init__(self, self.root, background="black", **kwargs)
         self.pack(fill=tk.BOTH, side="left", expand=True)
+        self.bind("<Button-1>", self.leftClickHandler)
         self.i = 0
         self.drawCanvas()
 
     def drawCanvas(self):
         self.delete("all")
+        self.create_rectangle(self.winfo_width()-40,0,self.winfo_width(),40,fill="white")
         # On aplique chaque force de chaque objet
         for name, so in self.root.spacialObjects.items():
             so.applyForces(self.root.spacialObjects)
@@ -134,7 +151,8 @@ class section(tk.Canvas):
             self.showSpacialObject(so)
             so.drawLastPos(self)
         self.i += 1
-        self.after(41, self.drawCanvas)
+        if not self.isPaused:
+            self.after(41, self.drawCanvas)
 
     def showSpacialObject(self, so):
         self.drawCircle(so.radius, so.x, so.y, so.color)
@@ -143,6 +161,14 @@ class section(tk.Canvas):
     def drawCircle(self, radius, centerX, centerY, color):
         self.create_oval(centerX-radius, centerY-radius, centerX+radius,
                          centerY+radius, fill=color)
+    
+    def leftClickHandler(self,e):
+        if e.x >= self.winfo_width()-40 and e.y <= 40: #Pause button
+            if not self.isPaused:
+                self.isPaused = True
+            else:
+                self.isPaused = False
+                self.drawCanvas()
 
 
 class aside(ScrollableFrame):
@@ -178,6 +204,8 @@ class objectFrame(tk.Frame):
         self.name = name
         self.so = so
         self.root = root
+        self.isSpeedPaused = False
+        so.objectFrame = self
 
         super().__init__(root, background="white", relief=tk.GROOVE, bd=1)
         self.pack(side=tk.TOP, padx=5, pady=5)
@@ -188,32 +216,52 @@ class objectFrame(tk.Frame):
         # Mass
         tk.Label(self, text="Massse :",
                  background="white").grid(row=1, column=0)
-        massVar = tk.StringVar(value=so.mass)
-        massVar.trace_add("write", lambda a, b, c: print(a, b, c))
-        tk.Entry(self, textvariable=massVar, width=5,
+        self.massVar = tk.DoubleVar(value=so.mass)
+        tk.Entry(self, textvariable=self.massVar, width=25,
                  bg="SystemButtonFace").grid(row=1, column=1)
         tk.Label(self, text="kg", background="white").grid(row=1, column=2)
 
         # Speed
         tk.Label(self, text="Vitesse :",
                  background="white").grid(row=2, column=0)
-        speedVar = tk.IntVar(value=so.speed)
-        tk.Entry(self, textvariable=speedVar, width=5,
+        self.speedVar = tk.DoubleVar(value=so.speed)
+        tk.Entry(self, textvariable=self.speedVar, width=10,
                  bg="SystemButtonFace").grid(row=2, column=1)
         tk.Label(self, text="m/s", background="white").grid(row=2, column=2)
+        tk.Button(self, text="Pause", command=self.toogleSpeed).grid(row=2,
+                                                                     column=3)
 
         # Color
+        self.color = so.color
         tk.Label(self, text="Coleur :", background="white").grid(row=3,
                                                                  column=0)
         self.colorB = tk.Button(self, text="   ", command=self.changeColor,
-                                width=2, bg=so.color, relief="flat")
+                                width=2, bg=self.color, relief="flat")
         self.colorB.grid(row=3, column=1)
-
+        
+        buttonUpdate = tk.Button(self,
+                                    text="Ok",
+                                    command=self.updateSo)
+        buttonUpdate.grid(row=4,
+                          column=4)
     def changeColor(self):
         newColor = tk.colorchooser.askcolor()[1]
         if newColor is not None:
-            self.so.color = newColor
+            self.color = newColor
             self.colorB.configure(bg=newColor)
+            
+    def toogleSpeed(self):
+        if self.isSpeedPaused:
+            self.isSpeedPaused = False
+        else:
+            self.isSpeedPaused = True
+    
+    def updateSo(self):
+        self.so.mass = self.massVar.get()
+        if self.isSpeedPaused: 
+            self.so.setSpeed(self.speedVar.get())
+            self.toogleSpeed()
+        self.so.color = self.color
 
 
 class addObjectWindow(tk.Frame):
