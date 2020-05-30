@@ -6,7 +6,7 @@ import math as m
 
 ECHELLE_DIST = 1000  # 1px <-> ECHELLE_DIST m
 ECHELLE_TPS = 600  # 1 frame <-> ECHELLE_TPS s
-#test2
+
 
 class SpacialObject:
     def __init__(self, radius, mass, x, y, color, mvt):
