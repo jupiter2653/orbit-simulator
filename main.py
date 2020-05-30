@@ -267,6 +267,7 @@ class objectFrame(tk.Frame):
 
 class addObjectWindow(tk.Frame):
     def __init__(self, fenetre, **kwargs):
+        #test
         def __init__(self, fenetre, **kwargs):
         tk.Frame.__init__(self, fenetre, **kwargs)
         self.pack(fill=tk.BOTH)
