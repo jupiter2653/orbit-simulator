@@ -4,11 +4,12 @@ import numpy as np
 import tkinter.colorchooser
 import math as m
 
-ECHELLE_DIST = 1000 # 1px <-> ECHELLE_DIST m
-ECHELLE_TPS = 600 # 1 frame <-> ECHELLE_TPS s
+ECHELLE_DIST = 1000  # 1px <-> ECHELLE_DIST m
+ECHELLE_TPS = 600  # 1 frame <-> ECHELLE_TPS s
+
 
 class SpacialObject:
-    def __init__(self, radius, mass, x, y, color,mvt):
+    def __init__(self, radius, mass, x, y, color, mvt):
         self.radius = radius
         self.mass = mass
         self.x = x
@@ -22,9 +23,9 @@ class SpacialObject:
 
     def move(self):
         deltaV = self.getDeltaV()
-        try :
+        try:
             if not self.objectFrame.isSpeedPaused:
-                self.objectFrame.speedVar.set(round(self.getSpeed(),3))
+                self.objectFrame.speedVar.set(round(self.getSpeed(), 3))
         except AttributeError:
             pass
         self.deplacementVector = self.deplacementVector + deltaV
@@ -35,58 +36,58 @@ class SpacialObject:
             self.lastPos = self.lastPos[-200:]
         self.appliedForces = []
 
-    def applyForces(self,spacialObjects):
-        for name,so in spacialObjects.items():
+    def applyForces(self, spacialObjects):
+        for name, so in spacialObjects.items():
             if so != self:
                 u = self.getUnitVector(so.x,so.y,self.x,self.y)
-                u *=self.getGravity(self.mass,so.mass,self.norme((self.x-so.x,self.y-so.y))*ECHELLE_DIST)
+                u *= self.getGravity(self.mass, so.mass,self.norme((self.x-so.x,self.y-so.y))*ECHELLE_DIST)
                 so.applied(u)
-                
+
     def drawVectors(self,c):
         for v in self.appliedForces:
             c.create_line(self.x, self.y, self.x+v[0]/50, self.y+v[1]/50, fill='white')
-        
+
         s = np.sum(self.appliedForces, axis=0)
         c.create_line(self.x, self.y, self.x+s[0], self.y+s[1], fill='yellow')
         c.create_line(self.x, self.y, self.x+self.getCarthesian()[0], self.y+self.getCarthesian()[1], fill='green')
-        
+
     def drawLastPos(self,c):
         for i in range(1,len(self.lastPos)):
             c.create_line(self.lastPos[i][0], self.lastPos[i][1], self.lastPos[i-1][0], self.lastPos[i-1][1], fill=self.color)
-        
+
     def getCarthesian(self):
         return self.deplacementVector
-    
+
     def getPolar(self):
         return (self.norme(self.getCarthesian()),
                 m.arctan(self.getCarthesian()[1]/self.getCarthesian()[0]))
-    
+
     def norme(self,v):
         return m.sqrt(v[0]**2+v[1]**2)
-    
+
     def getUnitVector(self, x1,y1,x2,y2):
         a = (x2-x1,y2-y1)
         aBar = self.norme(a)
         u = np.array((a[0]/aBar,a[1]/aBar))
         return u
-    
+
     def getGravity(self,m1,m2,d):
         return 6.674*10**(-11)*((m1*m2)/d**2)
-    
+
     def applied(self, f):
         self.appliedForces.append(f)
-        
+
     def getDeltaV(self):
         sumForces = np.sum(self.appliedForces, axis=0)
         return sumForces*ECHELLE_TPS/self.mass
-    
+
     def getSpeed(self):
         return self.norme(self.deplacementVector)*ECHELLE_DIST/ECHELLE_TPS
-    
+
     def setSpeed(self,s):
         self.deplacementVector = self.getUnitVector(0,0,self.deplacementVector[0],self.deplacementVector[1])*s
         return self.deplacementVector
-        
+
 
 class ScrollableFrame(tk.Frame):
     def __init__(self, container, *args, **kwargs):
@@ -142,7 +143,7 @@ class section(tk.Canvas):
         # On aplique chaque force de chaque objet
         for name, so in self.root.spacialObjects.items():
             so.applyForces(self.root.spacialObjects)
-        
+
         # On fait déplace puis dessine chaque objet
         for name, so in self.root.spacialObjects.items():
             #so.drawVectors(self)
@@ -161,7 +162,7 @@ class section(tk.Canvas):
     def drawCircle(self, radius, centerX, centerY, color):
         self.create_oval(centerX-radius, centerY-radius, centerX+radius,
                          centerY+radius, fill=color)
-    
+
     def leftClickHandler(self,e):
         if e.x >= self.winfo_width()-40 and e.y <= 40: #Pause button
             if not self.isPaused:
@@ -238,7 +239,7 @@ class objectFrame(tk.Frame):
         self.colorB = tk.Button(self, text="   ", command=self.changeColor,
                                 width=2, bg=self.color, relief="flat")
         self.colorB.grid(row=3, column=1)
-        
+
         buttonUpdate = tk.Button(self,
                                     text="Ok",
                                     command=self.updateSo)
@@ -249,16 +250,16 @@ class objectFrame(tk.Frame):
         if newColor is not None:
             self.color = newColor
             self.colorB.configure(bg=newColor)
-            
+
     def toogleSpeed(self):
         if self.isSpeedPaused:
             self.isSpeedPaused = False
         else:
             self.isSpeedPaused = True
-    
+
     def updateSo(self):
         self.so.mass = self.massVar.get()
-        if self.isSpeedPaused: 
+        if self.isSpeedPaused:
             self.so.setSpeed(self.speedVar.get())
             self.toogleSpeed()
         self.so.color = self.color
@@ -266,8 +267,58 @@ class objectFrame(tk.Frame):
 
 class addObjectWindow(tk.Frame):
     def __init__(self, fenetre, **kwargs):
+        def __init__(self, fenetre, **kwargs):
         tk.Frame.__init__(self, fenetre, **kwargs)
         self.pack(fill=tk.BOTH)
+
+
+        #Ajout d'un objet pré-existant
+        object_registered = tk.LabelFrame(self, text="Nouvel objet à partir d'un objet pré-existant", padx=20, pady=20)
+        object_registered.pack(side=tk.TOP, padx=20, pady=10)
+
+        #Commentaire pour l'utilisateur
+        Presentation1= tk.Label(object_registered, text="Ici, le nouvel objet que vous intégrerez aura les mêmes caractéristiques qu'un des objets ci-dessous, dont les caractéristiques sont déjà connues.")
+        Presentation1.pack()
+
+        #Choix des profils pré-existants
+        valueobject = tk.IntVar()
+        ButtonEarth = tk.Radiobutton(object_registered, text="Terre", variable=valueobject, value=1)
+        ButtonMoon = tk.Radiobutton(object_registered, text="Lune", variable=valueobject, value=2)
+        ButtonMars = tk.Radiobutton(object_registered, text="Mars", variable=valueobject, value=3)
+        ButtonEarth.pack(side=tk.LEFT, padx=20, pady=20)
+        ButtonMoon.pack(side=tk.LEFT, padx=20, pady=20)
+        ButtonMars.pack(side=tk.LEFT, padx=20, pady=20)
+
+
+        #Ajout d'un objet aux caractéristiques à choisir
+        new_object = tk.LabelFrame(self, text='Nouvel objet avec de nouvelles caractéristiques', padx=20, pady=20)
+        new_object.pack(side=tk.TOP, padx=20, pady=20)
+
+        #Commentaire pour l'utilisateur
+        Presentation2= tk.Label(new_object, text="Tandis qu'ici, le nouvel objet que vous intégrerez aura les caractéristiques que vous saisissez dans les espaces ci-dessous, de façon à personnaliser l'expérience.")
+        Presentation2.pack()
+
+        #Choix des caractéristiques
+        Frame1 = tk.LabelFrame(new_object,text="Masse (Un nombre en kg)")
+        Frame1.pack(side=tk.LEFT, padx=20, pady=20)
+        mass = tk.StringVar()
+        entree = tk.Entry(Frame1, textvariable=mass, width=30)
+        entree.pack(padx=10, pady=10)
+
+        Frame2 = tk.LabelFrame(new_object,text="Rayon (Un nombre en km)")
+        Frame2.pack(side=tk.LEFT, padx=20, pady=20)
+        radius = tk.StringVar()
+        entree = tk.Entry(Frame2, textvariable=radius, width=30)
+        entree.pack(padx=10, pady=10)
+
+        Frame3 = tk.LabelFrame(new_object,text="??? (un nombre en ???)")
+        Frame3.pack(side=tk.LEFT, padx=20, pady=20)
+        test = tk.StringVar()
+        entree = tk.Entry(Frame3, textvariable=test, width=30)
+        entree.pack(padx=10, pady=10)
+
+        Button_quit=tk.Button(self, text="Quitter", command=fenetre.destroy)
+        Button_quit.pack(side=tk.BOTTOM)
 
 
 root = tk.Tk()
