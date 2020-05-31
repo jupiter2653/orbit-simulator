@@ -118,14 +118,14 @@ class mainInterface(tk.Frame):
         self.pack(fill=tk.BOTH, expand=True)
 
         self.spacialObjects = {
-                "Earth": SpacialObject(5, 3e16, 500, 300, "yellow",[-2,0]),
+                "Earth": SpacialObject(5, 3e16, 300, 200, "blue",[2,0]),
                 "Sun": SpacialObject(5, 3e16, 300, 350, "yellow",[-2,0]),
                 "Mars": SpacialObject(5, 0.0001, 300, 275, "red",[-1,-1])
                 #"Jsp": SpacialObject(5, 3*10**15, 200, 400, "white",[1,0]),
                 #"Jsp2": SpacialObject(5, 3*10**15, 500, 400, "white",[1,0]),
             }
         self.shownSection = section(self)
-        self.shownAside = aside(self)
+        self.shownAside = aside(self,highlightthickness=0)
 
 
 class section(tk.Canvas):
@@ -199,6 +199,10 @@ class aside(ScrollableFrame):
         root = tk.Tk()
         addObjectWindow(root,self.root)
         root.mainloop()
+        
+    def update(self):
+        self.destroy()
+        self.__init__(self.root)
             
 
 
@@ -214,25 +218,32 @@ class objectFrame(tk.Frame):
         self.pack(side=tk.TOP, padx=5, pady=5)
 
         tk.Label(self, text=name, background="white",
-                 width=40).grid(padx=5, pady=5, row=0, column=0, columnspan=6)
+                 width=40).grid(padx=5, pady=5, row=0, column=0, columnspan=10)
 
         # Mass
+        
+        self.massVarNum = tk.DoubleVar(value=self.getScienti(so.mass)[0][:5])
+        self.massVarPow = tk.IntVar(value=self.getScienti(so.mass)[1])
+        
         tk.Label(self, text="Massse :",
                  background="white").grid(row=1, column=0)
-        self.massVar = tk.DoubleVar(value=so.mass)
-        tk.Entry(self, textvariable=self.massVar, width=10,
+        tk.Entry(self, textvariable=self.massVarNum, width=6,
                  bg="SystemButtonFace").grid(row=1, column=1)
-        tk.Label(self, text="kg", background="white").grid(row=1, column=2)
+        tk.Label(self,text="E", background="white",bd=-2).grid(row=1, column=2)
+        tk.Entry(self, textvariable=self.massVarPow, width=4,
+                 bg="SystemButtonFace").grid(row=1, column=3)
+
+        tk.Label(self, text="kg", background="white").grid(row=1, column=4)
 
         # Speed
         tk.Label(self, text="Vitesse :",
                  background="white").grid(row=2, column=0)
         self.speedVar = tk.DoubleVar(value=so.speed)
         tk.Entry(self, textvariable=self.speedVar, width=10,
-                 bg="SystemButtonFace").grid(row=2, column=1)
-        tk.Label(self, text="m/s", background="white").grid(row=2, column=2)
+                 bg="SystemButtonFace").grid(row=2, column=1,columnspan=3)
+        tk.Label(self, text="m/s", background="white").grid(row=2, column=4)
         tk.Button(self, text="Pause", command=self.toogleSpeed).grid(row=2,
-                                                                     column=3)
+                                                                     column=5)
 
         # Color
         self.color = so.color
@@ -246,7 +257,7 @@ class objectFrame(tk.Frame):
                                     text="Ok",
                                     command=self.updateSo)
         buttonUpdate.grid(row=4,
-                          column=4)
+                          column=8)
     def changeColor(self):
         newColor = tk.colorchooser.askcolor()[1]
         if newColor is not None:
@@ -260,11 +271,17 @@ class objectFrame(tk.Frame):
             self.isSpeedPaused = True
 
     def updateSo(self):
-        self.so.mass = self.massVar.get()
+        self.so.mass = self.getDec((self.massVarNum.get(),self.massVarPow.get()))
         if self.isSpeedPaused:
             self.so.setSpeed(self.speedVar.get())
             self.toogleSpeed()
         self.so.color = self.color
+        
+    def getScienti(self,n):
+        return ("%e"%n).split("e")
+    
+    def getDec(self,n):
+        return n[0]*10**n[1]
 
 
 class addObjectWindow(tk.Frame):
@@ -302,58 +319,65 @@ class addObjectWindow(tk.Frame):
 
         #Commentaire pour l'utilisateur
         Presentation2= tk.Label(new_object, text="Tandis qu'ici, le nouvel objet que vous intégrerez aura les caractéristiques que vous saisissez dans les espaces ci-dessous, de façon à personnaliser l'expérience.")
-        Presentation2.pack()
+        Presentation2.grid(row=0,column=0,columnspan=6)
 
         #Choix des caractéristiques
         self.entries = {}
 
         FrameName = tk.LabelFrame(new_object,text="Nom de l'objet")
-        FrameName.pack(side=tk.LEFT, padx=20, pady=20)
+        FrameName.grid(row=1,column=0, columnspan = 2, padx=20, pady=20)
         nameVar = tk.StringVar(value="test")
-        self.entries["name"] = tk.Entry(FrameName, textvariable=nameVar, width=30)
+        self.entries["name"] = tk.Entry(FrameName, textvariable=nameVar, width=20)
         self.entries["name"].pack(padx=10, pady=10)
 
-        FrameRadius = tk.LabelFrame(new_object,text="Rayon (Un nombre en pixel)")
-        FrameRadius.pack(side=tk.LEFT, padx=20, pady=20)
+        FrameRadius = tk.LabelFrame(new_object,text="Rayon (Px)")
+        FrameRadius.grid(row=2,column=0)
         self.radius = tk.DoubleVar()
-        self.entries["radius"] = tk.Entry(FrameRadius, textvariable=self.radius, width=30)
+        self.entries["radius"] = tk.Entry(FrameRadius, textvariable=self.radius, width=5)
         self.entries["radius"].pack(padx=10, pady=10)
-
-        FrameMass = tk.LabelFrame(new_object,text="Masse (Un nombre en kg)")
-        FrameMass.pack(side=tk.LEFT, padx=20, pady=20)
-        self.mass = tk.DoubleVar()
-        self.entries["mass"] = tk.Entry(FrameMass, textvariable=self.mass, width=30)
-        self.entries["mass"].pack(padx=10, pady=10)
-
-        FrameX = tk.LabelFrame(new_object,text="coordonée x")
-        FrameX.pack(side=tk.LEFT, padx=20, pady=20)
-        self.x = tk.IntVar(value="10")
-        self.entries["x"] = tk.Entry(FrameX, textvariable=self.x, width=30)
-        self.entries["x"].pack(padx=10, pady=10)
         
-
-        FrameY = tk.LabelFrame(new_object,text="coordonée y")
-        FrameY.pack(side=tk.BOTTOM, padx=20, pady=20)
-        self.y = tk.IntVar()
-        self.entries["y"] = tk.Entry(FrameY, textvariable=self.y, width=30)
-        self.entries["y"].pack(padx=10, pady=10)
-
-        FrameVector = tk.LabelFrame(new_object,text="Mouvement (Vecteur sous la forme x;y)")
-        FrameVector.pack(side=tk.BOTTOM, padx=20, pady=20)
-        self.mvt = tk.StringVar()
-        self.entries["vector"] = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
-        self.entries["vector"].pack(padx=10, pady=10)
-
+        
         FrameColor = tk.LabelFrame(new_object,text="Couleur")
-        FrameColor.pack(side=tk.BOTTOM, padx=20, pady=20)
+        FrameColor.grid(row=2,column=1, padx=0, pady=0)
         self.color = "blue"
         self.entries["color"] = "blue"
         self.colorB = tk.Button(FrameColor, text="   ", command=self.changeColor,
                                 width=2, bg=self.color, relief="flat")
-        self.colorB.pack()
+        self.colorB.pack(padx=10, pady=5)
+
+        FrameMass = tk.LabelFrame(new_object,text="Masse (Un nombre en kg)")
+        FrameMass.grid(row=1,column=2, padx=20, pady=20)
+        massNum = tk.DoubleVar()
+        massPow = tk.IntVar()
+        self.entries["massNum"] = tk.Entry(FrameMass, textvariable=massNum, width=6)
+        self.entries["massNum"].pack(side = tk.LEFT, padx=5, pady=10)
+        tk.Label(FrameMass,text="E",bd=-2).pack(side = tk.LEFT, padx=5, pady=10)
+        self.entries["massPow"] = tk.Entry(FrameMass, textvariable=massPow, width=4)
+        self.entries["massPow"].pack(side = tk.LEFT, padx=5, pady=10)
+        
+        FrameVector = tk.LabelFrame(new_object,text="Mouvement (Vecteur sous la forme x;y)")
+        FrameVector.grid(row=2,column=2, padx=20, pady=20)
+        self.mvt = tk.StringVar()
+        self.entries["vector"] = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
+        self.entries["vector"].pack(padx=10, pady=10)
+
+        FrameX = tk.LabelFrame(new_object,text="coordonée X")
+        FrameX.grid(row=1,column=3, padx=20, pady=20)
+        self.x = tk.IntVar(value="10")
+        self.entries["x"] = tk.Entry(FrameX, textvariable=self.x, width=5)
+        self.entries["x"].pack(padx=10, pady=10)
+        
+
+        FrameY = tk.LabelFrame(new_object,text="coordonée Y")
+        FrameY.grid(row=2,column=3, padx=20, pady=20)
+        self.y = tk.IntVar()
+        self.entries["y"] = tk.Entry(FrameY, textvariable=self.y, width=5)
+        self.entries["y"].pack(padx=10, pady=10)
+
+
 
         Button_save=tk.Button(new_object, text="OK", command=self.saveNewObject)
-        Button_save.pack(side=tk.BOTTOM)
+        Button_save.grid(row=3,column=1,columnspan=2, padx=20, pady=20)
 
     def changeColor(self):
         newColor = tk.colorchooser.askcolor()[1]
@@ -362,13 +386,11 @@ class addObjectWindow(tk.Frame):
             self.colorB.configure(bg=newColor)
             self.entries["color"] = newColor
 
-
-
-
     def saveNewObject(self):
         self.mainInterface.spacialObjects[self.entries["name"].get()] = SpacialObject(int(self.entries["radius"].get()), 
-                                                                                      float(self.entries["mass"].get()), int(self.entries["x"].get()), 
+                                                                                      float(self.entries["massNum"].get())*10**int(self.entries["massPow"].get()), int(self.entries["x"].get()), 
                                                                                      int(self.entries["y"].get()), self.entries["color"],[2,0])
+        self.mainInterface.shownAside.update()
         self.fenetre.destroy()
 
 root = tk.Tk()
