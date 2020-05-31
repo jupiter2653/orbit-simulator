@@ -199,6 +199,7 @@ class aside(ScrollableFrame):
         root = tk.Tk()
         addObjectWindow(root,self.root)
         root.mainloop()
+            
 
 
 class objectFrame(tk.Frame):
@@ -304,48 +305,49 @@ class addObjectWindow(tk.Frame):
         Presentation2.pack()
 
         #Choix des caractéristiques
-        self.values = {}
+        self.entries = {}
 
         FrameName = tk.LabelFrame(new_object,text="Nom de l'objet")
         FrameName.pack(side=tk.LEFT, padx=20, pady=20)
-        self.name = tk.StringVar()
-        entree = tk.Entry(FrameName, textvariable=self.name, width=30)
-        entree.pack(padx=10, pady=10)
+        nameVar = tk.StringVar(value="test")
+        self.entries["name"] = tk.Entry(FrameName, textvariable=nameVar, width=30)
+        self.entries["name"].pack(padx=10, pady=10)
 
         FrameRadius = tk.LabelFrame(new_object,text="Rayon (Un nombre en pixel)")
         FrameRadius.pack(side=tk.LEFT, padx=20, pady=20)
         self.radius = tk.DoubleVar()
-        entree = tk.Entry(FrameRadius, textvariable=self.radius, width=30)
-        entree.pack(padx=10, pady=10)
+        self.entries["radius"] = tk.Entry(FrameRadius, textvariable=self.radius, width=30)
+        self.entries["radius"].pack(padx=10, pady=10)
 
         FrameMass = tk.LabelFrame(new_object,text="Masse (Un nombre en kg)")
         FrameMass.pack(side=tk.LEFT, padx=20, pady=20)
         self.mass = tk.DoubleVar()
-        entree = tk.Entry(FrameMass, textvariable=self.mass, width=30)
-        entree.pack(padx=10, pady=10)
+        self.entries["mass"] = tk.Entry(FrameMass, textvariable=self.mass, width=30)
+        self.entries["mass"].pack(padx=10, pady=10)
 
         FrameX = tk.LabelFrame(new_object,text="coordonée x")
         FrameX.pack(side=tk.LEFT, padx=20, pady=20)
-        self.x = tk.IntVar()
-        entree = tk.Entry(FrameX, textvariable=self.x, width=30)
-        entree.pack(padx=10, pady=10)
+        self.x = tk.IntVar(value="10")
+        self.entries["x"] = tk.Entry(FrameX, textvariable=self.x, width=30)
+        self.entries["x"].pack(padx=10, pady=10)
+        
 
         FrameY = tk.LabelFrame(new_object,text="coordonée y")
         FrameY.pack(side=tk.BOTTOM, padx=20, pady=20)
         self.y = tk.IntVar()
-        entree = tk.Entry(FrameY, textvariable=self.y, width=30)
-        entree.pack(padx=10, pady=10)
+        self.entries["y"] = tk.Entry(FrameY, textvariable=self.y, width=30)
+        self.entries["y"].pack(padx=10, pady=10)
 
-        FrameVector = tk.LabelFrame(new_object,text="Mouvement (Vecteur sous la forme [x;y])")
+        FrameVector = tk.LabelFrame(new_object,text="Mouvement (Vecteur sous la forme x;y)")
         FrameVector.pack(side=tk.BOTTOM, padx=20, pady=20)
-        self.mvt = tk.IntVar()
-        entree = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
-        entree.pack(padx=10, pady=10)
+        self.mvt = tk.StringVar()
+        self.entries["vector"] = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
+        self.entries["vector"].pack(padx=10, pady=10)
 
         FrameColor = tk.LabelFrame(new_object,text="Couleur")
         FrameColor.pack(side=tk.BOTTOM, padx=20, pady=20)
         self.color = "blue"
-        self.values["color"] = "blue"
+        self.entries["color"] = "blue"
         self.colorB = tk.Button(FrameColor, text="   ", command=self.changeColor,
                                 width=2, bg=self.color, relief="flat")
         self.colorB.pack()
@@ -358,16 +360,15 @@ class addObjectWindow(tk.Frame):
         if newColor is not None:
             self.color = newColor
             self.colorB.configure(bg=newColor)
-            self.values["color"] = newColor
+            self.entries["color"] = newColor
 
 
 
 
     def saveNewObject(self):
-        print(self.name.get(),self.name)
-        print(self.radius, self.mass, self.x, self.y, self.color,[2,0])
-        print(self.radius.get(), self.mass.get(), self.x.get(), self.y.get(), self.color,[2,0])
-        self.mainInterface.spacialObjects[self.name.get()] = SpacialObject(self.radius.get(), self.mass.get(), self.x.get(), self.y.get(), self.values["color"],[2,0])  #radius, mass, x, y, color, mvt
+        self.mainInterface.spacialObjects[self.entries["name"].get()] = SpacialObject(int(self.entries["radius"].get()), 
+                                                                                      float(self.entries["mass"].get()), int(self.entries["x"].get()), 
+                                                                                     int(self.entries["y"].get()), self.entries["color"],[2,0])
         self.fenetre.destroy()
 
 root = tk.Tk()
