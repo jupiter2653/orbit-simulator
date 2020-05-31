@@ -3,9 +3,16 @@ import tkinter as tk
 import numpy as np
 import tkinter.colorchooser
 import math as m
+import csv
 
 ECHELLE_DIST = 1000  # 1px <-> ECHELLE_DIST m
 ECHELLE_TPS = 600  # 1 frame <-> ECHELLE_TPS s
+
+profile = []
+with open('MrMalletlebest.csv', newline='') as csvfile:
+    read = csv.DictReader(csvfile, delimiter=';')
+    for row in read:
+        profile.append(dict(row))
 
 
 class SpacialObject:
@@ -359,8 +366,6 @@ class addObjectWindow(tk.Frame):
             self.color = newColor
             self.colorB.configure(bg=newColor)
             self.values["color"] = newColor
-
-
 
 
     def saveNewObject(self):
