@@ -3,16 +3,13 @@ import tkinter as tk
 import numpy as np
 import tkinter.colorchooser
 import math as m
-import csv
+import pandas as pd
 
-ECHELLE_DIST = 1000  # 1px <-> ECHELLE_DIST m
+ECHELLE_DISTq = 1000  # 1px <-> ECHELLE_DIST m
 ECHELLE_TPS = 600  # 1 frame <-> ECHELLE_TPS s
 
 KnownObject = []
-with open('MrMalletlebest.csv', newline='') as csvfile:
-    read = csv.DictReader(csvfile, delimiter=';')
-    for row in read:
-        KnownObject.append(dict(row))
+
 
 
 class SpacialObject:
@@ -302,6 +299,7 @@ class addObjectWindow(tk.Frame):
 
         #Ajout d'un objet pré-existant
         self.entries = {}
+        self.KnownEntries = {}
         object_registered = tk.LabelFrame(self, text="Nouvel objet à partir d'un objet pré-existant", padx=20, pady=20)
         object_registered.pack(side=tk.TOP, padx=20, pady=10)
 
@@ -313,42 +311,41 @@ class addObjectWindow(tk.Frame):
         #Choix des profils pré-existants
         FrameChoice = tk.LabelFrame(object_registered,text="Veuillez choisir le profil de la planète pré-existante")
         FrameChoice.grid(row=1,column=0, columnspan = 2, padx=20, pady=20)
+        
+        
+        with open('MrMalletlebest.csv', newline='') as csvfile:
+            self.KnownObject = pd.read_csv(csvfile)
+        
+        
+        self.knownObjectList = tk.Listbox(FrameChoice)
+        self.knownObjectList.pack()
+        
+        for planet in self.KnownObject.loc[:,"Name"]:
+           self.knownObjectList.insert(tk.END, planet)
 
-        self.valueobject = tk.IntVar()
-        ButtonEarth = tk.Radiobutton(FrameChoice, text="Terre", variable=self.valueobject, value=0)
-        ButtonMoon = tk.Radiobutton(FrameChoice, text="Lune", variable=self.valueobject, value=1)
-        ButtonMars = tk.Radiobutton(FrameChoice, text="Mars", variable=self.valueobject, value=2)
-        ButtonVenus = tk.Radiobutton(FrameChoice, text="Venus", variable=self.valueobject, value=3)
-        ButtonMercury = tk.Radiobutton(FrameChoice, text="Mercure", variable=self.valueobject, value=4)
-        ButtonSun = tk.Radiobutton(FrameChoice, text="Soleil", variable=self.valueobject, value=5)
-
-        ButtonEarth.pack(side=tk.LEFT, padx=20, pady=20)
-        ButtonMoon.pack(side=tk.LEFT, padx=20, pady=20)
-        ButtonMars.pack(side=tk.LEFT, padx=20, pady=20)
-        ButtonVenus.pack(side=tk.LEFT, padx=20, pady=20)
-        ButtonMercury.pack(side=tk.LEFT, padx=20, pady=20)
-        ButtonSun.pack(side=tk.LEFT, padx=20, pady=20)
 
         Button_save=tk.Button(object_registered, text="OK", command=self.saveKnownObject)
         Button_save.grid(row=0,column=2, padx=20, pady=20)
 
+
+
         FrameVector = tk.LabelFrame(object_registered,text="Mouvement (Vecteur sous la forme x;y)")
         FrameVector.grid(row=2,column=2, padx=20, pady=20)
         self.mvt = tk.StringVar()
-        self.entries["vector"] = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
-        self.entries["vector"].pack(padx=10, pady=10)
+        self.KnownEntries["vector"] = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
+        self.KnownEntries["vector"].pack(padx=10, pady=10)
 
         FrameX = tk.LabelFrame(object_registered,text="coordonée X")
         FrameX.grid(row=1,column=3, padx=20, pady=20)
         self.x = tk.IntVar(value="10")
-        self.entries["x"] = tk.Entry(FrameX, textvariable=self.x, width=5)
-        self.entries["x"].pack(padx=10, pady=10)
+        self.KnownEntries["x"] = tk.Entry(FrameX, textvariable=self.x, width=5)
+        self.KnownEntries["x"].pack(padx=10, pady=10)
 
         FrameY = tk.LabelFrame(object_registered,text="coordonée Y")
         FrameY.grid(row=2,column=3, padx=20, pady=20)
         self.y = tk.IntVar()
-        self.entries["y"] = tk.Entry(FrameY, textvariable=self.y, width=5)
-        self.entries["y"].pack(padx=10, pady=10)
+        self.KnownEntries["y"] = tk.Entry(FrameY, textvariable=self.y, width=5)
+        self.KnownEntries["y"].pack(padx=10, pady=10)
 
 
         #Ajout d'un objet aux caractéristiques à choisir
@@ -419,12 +416,7 @@ class addObjectWindow(tk.Frame):
         if newColor is not None:
             self.color = newColor
             self.colorB.configure(bg=newColor)
-#<<<<<<< HEAD
-            self.values["color"] = newColor
-
-#=======
             self.entries["color"] = newColor
-#>>>>>>> 633e6c6e1ac57290e2c1fdb038910407786be6f0
 
     def saveNewObject(self):
         self.mainInterface.spacialObjects[self.entries["name"].get()] = SpacialObject(int(self.entries["radius"].get()),
@@ -434,12 +426,10 @@ class addObjectWindow(tk.Frame):
         self.fenetre.destroy()
 
     def saveKnownObject(self):
-        self.name=KnownObject[self.valueobject.get()]["Name"]
-        self.radius=KnownObject[self.valueobject.get()]["Radius"]
-        self.massNum=KnownObject[self.valueobject.get()]["MassNum"]
-        self.massPow=int(KnownObject[self.valueobject.get()]["MassPow"])
-        self.color=str(KnownObject[self.valueobject.get()]["Color"])
-        self.mainInterface.spacialObjects[self.name] = SpacialObject(float(self.radius), float(self.massNum)*10**int(self.massPow), int(self.entries["x"].get()), int(self.entries["y"].get()), self.color,[2,0])
+        selected = self.KnownObject[self.KnownObject.Name == self.knownObjectList.get(tk.ACTIVE)]
+        print(selected.iloc[0])
+        
+        self.mainInterface.spacialObjects[selected.iloc[0]["Name"]] = SpacialObject(float(selected.iloc[0]["Radius"]),  float(selected.iloc[0]["MassNum"])*10**int(selected.iloc[0]["MassPow"]), int(self.KnownEntries["x"].get()), int(self.KnownEntries["y"].get()), self.color,[2,0])
         self.mainInterface.shownAside.update()
         self.fenetre.destroy()
 
