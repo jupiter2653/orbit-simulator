@@ -310,7 +310,7 @@ class addObjectWindow(tk.Frame):
 
         #Choix des profils pré-existants
         FrameChoice = tk.LabelFrame(object_registered,text="Veuillez choisir le profil de la planète pré-existante")
-        FrameChoice.grid(row=1,column=0, columnspan = 2, padx=20, pady=20)
+        FrameChoice.grid(row=1,column=0, rowspan = 3, padx=20, pady=20)
         
         
         with open('MrMalletlebest.csv', newline='') as csvfile:
@@ -324,19 +324,15 @@ class addObjectWindow(tk.Frame):
            self.knownObjectList.insert(tk.END, planet)
 
 
-        Button_save=tk.Button(object_registered, text="OK", command=self.saveKnownObject)
-        Button_save.grid(row=0,column=2, padx=20, pady=20)
-
-
 
         FrameVector = tk.LabelFrame(object_registered,text="Mouvement (Vecteur sous la forme x;y)")
-        FrameVector.grid(row=2,column=2, padx=20, pady=20)
+        FrameVector.grid(row=1,column=2,columnspan=2, padx=20, pady=20)
         self.mvt = tk.StringVar()
         self.KnownEntries["vector"] = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
         self.KnownEntries["vector"].pack(padx=10, pady=10)
 
         FrameX = tk.LabelFrame(object_registered,text="coordonée X")
-        FrameX.grid(row=1,column=3, padx=20, pady=20)
+        FrameX.grid(row=2,column=2, padx=20, pady=20)
         self.x = tk.IntVar(value="10")
         self.KnownEntries["x"] = tk.Entry(FrameX, textvariable=self.x, width=5)
         self.KnownEntries["x"].pack(padx=10, pady=10)
@@ -346,6 +342,10 @@ class addObjectWindow(tk.Frame):
         self.y = tk.IntVar()
         self.KnownEntries["y"] = tk.Entry(FrameY, textvariable=self.y, width=5)
         self.KnownEntries["y"].pack(padx=10, pady=10)
+        
+        
+        Button_save=tk.Button(object_registered, text="OK", command=self.saveKnownObject)
+        Button_save.grid(row=4,column=1, padx=20, pady=20)
 
 
         #Ajout d'un objet aux caractéristiques à choisir
