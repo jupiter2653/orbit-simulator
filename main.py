@@ -8,7 +8,8 @@ import pandas as pd
 ECHELLE_DIST = (150*10**9)/300  # 1px <-> ECHELLE_DIST m
 ECHELLE_TPS = 600  # 1 frame <-> ECHELLE_TPS s
 
-
+def test_placeholder():
+    pass
 
 class SpacialObject:
     def __init__(self, radius, mass, x, y, color, mvt):
@@ -361,7 +362,7 @@ class addObjectWindow(tk.Frame):
         self.entries["name"] = tk.Entry(FrameName, textvariable=nameVar, width=20)
         self.entries["name"].pack(padx=10, pady=10)
 
-        FrameRadius = tk.LabelFrame(new_object,text="Rayon (Km)")
+        FrameRadius = tk.LabelFrame(new_object,text="Rayon (km)")
         FrameRadius.grid(row=2,column=0)
         self.radius = tk.DoubleVar()
         self.entries["radius"] = tk.Entry(FrameRadius, textvariable=self.radius, width=8)
