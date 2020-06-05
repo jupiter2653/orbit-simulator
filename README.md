@@ -8,7 +8,7 @@ For each frame, the system compute the position of each object in the next frame
 ## Installation
 ### Windows
 This guide was tested on Windows 10
-1. Install the latest release [here](https://github.com/jupiter2653/orbit-simulator/releases)
+1. a. Install the latest release [here](https://github.com/jupiter2653/orbit-simulator/releases) or clone this repository with git.
 2. Extract all the files from the compressed folder
 3. Install the dependencies by typing ``pip install -r requirements.txt``
 4. Launch ``main.py``
