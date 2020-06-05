@@ -1,0 +1,4 @@
+tkinter
+numpy
+math
+pandas
