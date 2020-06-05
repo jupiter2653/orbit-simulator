@@ -5,10 +5,8 @@ import tkinter.colorchooser
 import math as m
 import pandas as pd
 
-ECHELLE_DISTq = 1000  # 1px <-> ECHELLE_DIST m
+ECHELLE_DIST = (150*10**9)/300  # 1px <-> ECHELLE_DIST m
 ECHELLE_TPS = 600  # 1 frame <-> ECHELLE_TPS s
-
-KnownObject = []
 
 
 
@@ -122,9 +120,9 @@ class mainInterface(tk.Frame):
         self.pack(fill=tk.BOTH, expand=True)
 
         self.spacialObjects = {
-                "Earth": SpacialObject(5, 3e16, 300, 200, "blue",[2,0]),
-                "Sun": SpacialObject(5, 3e16, 300, 350, "yellow",[-2,0]),
-                "Mars": SpacialObject(5, 0.0001, 300, 275, "red",[-1,-1])
+#                "Earth": SpacialObject(5, 3e16, 300, 200, "blue",[2,0]),
+#                "Sun": SpacialObject(5, 3e16, 300, 350, "yellow",[-2,0]),
+#                "Mars": SpacialObject(5, 0.0001, 300, 275, "red",[-1,-1])
                 #"Jsp": SpacialObject(5, 3*10**15, 200, 400, "white",[1,0]),
                 #"Jsp2": SpacialObject(5, 3*10**15, 500, 400, "white",[1,0]),
             }
@@ -152,8 +150,8 @@ class section(tk.Canvas):
         # On fait déplace puis dessine chaque objet
         for name, so in self.root.spacialObjects.items():
             #so.drawVectors(self)
-            so.move()
-            self.create_text(so.x, so.y+so.radius+5, text=name, fill="white")
+            so.move()            
+            self.create_text(so.x, so.y+so.radius/ECHELLE_DIST+5, text=name, fill="white")
             self.showSpacialObject(so)
             so.drawLastPos(self)
         self.i += 1
@@ -161,7 +159,7 @@ class section(tk.Canvas):
             self.after(41, self.drawCanvas)
 
     def showSpacialObject(self, so):
-        self.drawCircle(so.radius, so.x, so.y, so.color)
+        self.drawCircle(so.radius/ECHELLE_DIST, so.x, so.y, so.color)
         pass
 
     def drawCircle(self, radius, centerX, centerY, color):
@@ -363,10 +361,10 @@ class addObjectWindow(tk.Frame):
         self.entries["name"] = tk.Entry(FrameName, textvariable=nameVar, width=20)
         self.entries["name"].pack(padx=10, pady=10)
 
-        FrameRadius = tk.LabelFrame(new_object,text="Rayon (Px)")
+        FrameRadius = tk.LabelFrame(new_object,text="Rayon (Km)")
         FrameRadius.grid(row=2,column=0)
         self.radius = tk.DoubleVar()
-        self.entries["radius"] = tk.Entry(FrameRadius, textvariable=self.radius, width=5)
+        self.entries["radius"] = tk.Entry(FrameRadius, textvariable=self.radius, width=8)
         self.entries["radius"].pack(padx=10, pady=10)
 
         FrameColor = tk.LabelFrame(new_object,text="Couleur")
@@ -419,9 +417,9 @@ class addObjectWindow(tk.Frame):
             self.entries["color"] = newColor
 
     def saveNewObject(self):
-        self.mainInterface.spacialObjects[self.entries["name"].get()] = SpacialObject(int(self.entries["radius"].get()),
+        self.mainInterface.spacialObjects[self.entries["name"].get()] = SpacialObject(int(self.entries["radius"].get())*1000,
                                                                                       float(self.entries["massNum"].get())*10**int(self.entries["massPow"].get()), int(self.entries["x"].get()),
-                                                                                     int(self.entries["y"].get()), self.entries["color"],[2,0])
+                                                                                     int(self.entries["y"].get()), self.entries["color"],np.array(self.entries["vector"].get().split(";")).astype("int32"))
         self.mainInterface.shownAside.update()
         self.fenetre.destroy()
 
@@ -429,7 +427,7 @@ class addObjectWindow(tk.Frame):
         selected = self.KnownObject[self.KnownObject.Name == self.knownObjectList.get(tk.ACTIVE)]
         print(selected.iloc[0])
         
-        self.mainInterface.spacialObjects[selected.iloc[0]["Name"]] = SpacialObject(float(selected.iloc[0]["Radius"]),  float(selected.iloc[0]["MassNum"])*10**int(selected.iloc[0]["MassPow"]), int(self.KnownEntries["x"].get()), int(self.KnownEntries["y"].get()), self.color,[2,0])
+        self.mainInterface.spacialObjects[selected.iloc[0]["Name"]] = SpacialObject(int(selected.iloc[0]["Radius"]),  float(selected.iloc[0]["MassNum"])*10**int(selected.iloc[0]["MassPow"]), int(self.KnownEntries["x"].get()), int(self.KnownEntries["y"].get()), selected.iloc[0]["Color"],np.array(self.KnownEntries["vector"].get().split(";")).astype("int32"))
         self.mainInterface.shownAside.update()
         self.fenetre.destroy()
 
