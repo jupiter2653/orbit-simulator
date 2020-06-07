@@ -1,5 +1,5 @@
 # Orbit simulator
-Python programm using the 2nd law of Newton to simulate in real time gravitational interactions between two or more celestial bodies with a decicated UI. This program is our work for our informatic class final project.
+Python program using the 2nd law of Newton to simulate in real time gravitational interactions between two or more celestial bodies with a decicated UI. This program is our work for our informatic class final project.
 ## Operating process
 For each frame, the system compute the position of each object in the next frame considering a movement vector to which the variation of the speed vector has been added considering the following formulas : <br>
 ![Newton 2nd Law](https://wikimedia.org/api/rest_v1/media/math/render/svg/ce5a34efdcbe454a69e8b879e0005c809b0439ee) <br>
