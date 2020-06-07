@@ -4,6 +4,7 @@ import numpy as np
 import tkinter.colorchooser
 import math as m
 import pandas as pd
+from PIL import Image, ImageTk 
 
 ECHELLE_DIST = (150*10**9)/300  # 1px <-> ECHELLE_DIST m
 ECHELLE_TPS = 600  # 1 frame <-> ECHELLE_TPS s
@@ -139,11 +140,13 @@ class section(tk.Canvas):
         self.pack(fill=tk.BOTH, side="left", expand=True)
         self.bind("<Button-1>", self.leftClickHandler)
         self.i = 0
+        iPlayPause = Image.open(r"img\playpause.png") 
+        self.pPlayPause = ImageTk.PhotoImage(iPlayPause,size=2) 
         self.drawCanvas()
 
     def drawCanvas(self):
         self.delete("all")
-        self.create_rectangle(self.winfo_width()-40,0,self.winfo_width(),40,fill="white")
+        self.create_image(self.winfo_width()-10,10, anchor = tk.NE, image=self.pPlayPause)
         # On aplique chaque force de chaque objet
         for name, so in self.root.spacialObjects.items():
             so.applyForces(self.root.spacialObjects)
@@ -168,7 +171,7 @@ class section(tk.Canvas):
                          centerY+radius, fill=color)
 
     def leftClickHandler(self,e):
-        if e.x >= self.winfo_width()-40 and e.y <= 40: #Pause button
+        if e.x >= self.winfo_width()-self.pPlayPause.width()-10 and e.y <= self.pPlayPause.height()-10: #Pause button
             if not self.isPaused:
                 self.isPaused = True
             else:
