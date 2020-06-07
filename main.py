@@ -250,19 +250,26 @@ class objectFrame(tk.Frame):
         tk.Label(self, text="m/s", background="white").grid(row=2, column=4)
         tk.Button(self, text="Pause", command=self.toogleSpeed).grid(row=2,
                                                                      column=5)
+        #Radius
+        tk.Label(self, text="Rayon :",
+                 background="white").grid(row=3, column=0)
+        self.radiusVar = tk.DoubleVar(value=so.radius/1000)
+        tk.Entry(self, textvariable=self.radiusVar, width=10,
+                 bg="SystemButtonFace").grid(row=3, column=1,columnspan=3)
+        tk.Label(self, text="km", background="white").grid(row=3, column=4)
 
         # Color
         self.color = so.color
-        tk.Label(self, text="Couleur :", background="white").grid(row=3,
+        tk.Label(self, text="Couleur :", background="white").grid(row=4,
                                                                  column=0)
         self.colorB = tk.Button(self, text="   ", command=self.changeColor,
                                 width=2, bg=self.color, relief="flat")
-        self.colorB.grid(row=3, column=1)
+        self.colorB.grid(row=4, column=1)
 
         buttonUpdate = tk.Button(self,
                                     text="Ok",
                                     command=self.updateSo)
-        buttonUpdate.grid(row=4,
+        buttonUpdate.grid(row=5,
                           column=8)
     def changeColor(self):
         newColor = tk.colorchooser.askcolor()[1]
@@ -278,6 +285,7 @@ class objectFrame(tk.Frame):
 
     def updateSo(self):
         self.so.mass = self.getDec((self.massVarNum.get(),self.massVarPow.get()))
+        self.so.radius = self.radiusVar.get()*1000
         if self.isSpeedPaused:
             self.so.setSpeed(self.speedVar.get())
             self.toogleSpeed()
@@ -431,7 +439,7 @@ class addObjectWindow(tk.Frame):
         selected = self.KnownObject[self.KnownObject.Name == self.knownObjectList.get(tk.ACTIVE)]
         print(selected.iloc[0])
         
-        self.mainInterface.spacialObjects[selected.iloc[0]["Name"]] = SpacialObject(int(selected.iloc[0]["Radius"]),  float(selected.iloc[0]["MassNum"])*10**int(selected.iloc[0]["MassPow"]), int(self.KnownEntries["x"].get()), int(self.KnownEntries["y"].get()), selected.iloc[0]["Color"],np.array(self.KnownEntries["vector"].get().split(";")).astype("int32"))
+        self.mainInterface.spacialObjects[selected.iloc[0]["Name"]] = SpacialObject(float(selected.iloc[0]["Radius"])*1000,  float(selected.iloc[0]["MassNum"])*10**int(selected.iloc[0]["MassPow"]), int(self.KnownEntries["x"].get()), int(self.KnownEntries["y"].get()), selected.iloc[0]["Color"],np.array(self.KnownEntries["vector"].get().split(";")).astype("int32"))
         self.mainInterface.shownAside.update()
         self.fenetre.destroy()
 
