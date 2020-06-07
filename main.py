@@ -445,7 +445,6 @@ class addObjectWindow(tk.Frame):
 
     def saveKnownObject(self):
         selected = self.KnownObject[self.KnownObject.Name == self.knownObjectList.get(tk.ACTIVE)]
-        print(selected.iloc[0])
         
         self.mainInterface.spacialObjects[selected.iloc[0]["Name"]] = SpacialObject(float(selected.iloc[0]["Radius"])*1000,  float(selected.iloc[0]["MassNum"])*10**int(selected.iloc[0]["MassPow"]), int(self.KnownEntries["x"].get()), int(self.KnownEntries["y"].get()), selected.iloc[0]["Color"],np.array(self.KnownEntries["vector"].get().split(";")).astype("int32"))
         self.mainInterface.shownAside.update()
