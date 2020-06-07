@@ -121,7 +121,9 @@ class mainInterface(tk.Frame):
         tk.Frame.__init__(self, fenetre, **kwargs)
         self.pack(fill=tk.BOTH, expand=True)
 
-        self.spacialObjects = {}
+        self.spacialObjects = {
+                #"Earth": SpacialObject(5, 3e16, 300, 200, "blue",[1,0])
+                }
         
         self.shownSection = section(self)
         self.shownAside = aside(self,highlightthickness=0)
@@ -138,6 +140,10 @@ class section(tk.Canvas):
         tk.Canvas.__init__(self, self.root, background="black", **kwargs)
         self.pack(fill=tk.BOTH, side="left", expand=True)
         self.bind("<Button-1>", self.leftClickHandler)
+        self.dragging = None
+        self.bind("<ButtonPress-1>", self.dragStart)
+        self.bind("<ButtonRelease-1>", self.dragStop)
+        self.bind("<B1-Motion>", self.drag)
         self.i = 0
         iPlayPause = Image.open(r"img\playpause.png") 
         self.pPlayPause = ImageTk.PhotoImage(iPlayPause,size=2) 
@@ -147,6 +153,8 @@ class section(tk.Canvas):
         self.delete("all")
         self.create_image(self.winfo_width()-10,10, anchor = tk.NE, image=self.pPlayPause)
         # On aplique chaque force de chaque objet
+        
+        
         for name, so in self.root.spacialObjects.items():
             so.applyForces(self.root.spacialObjects)
 
@@ -176,7 +184,19 @@ class section(tk.Canvas):
             else:
                 self.isPaused = False
                 self.drawCanvas()
-
+    def dragStart(self,e):
+        for name, so in self.root.spacialObjects.items(): #Drag and Drop
+            if e.x <= so.x+so.radius/ECHELLE_DIST+10 and e.x >= so.x-so.radius/ECHELLE_DIST-10 and e.y <= so.y-so.radius/ECHELLE_DIST+10 and e.y >= so.y-so.radius/ECHELLE_DIST-10:
+                self.dragging = so
+                return
+    def dragStop(self,e):
+        self.dragging = None
+        
+    def drag(self,e):
+        if self.dragging is not None:
+            self.dragging.x = e.x
+            self.dragging.y = e.y
+        
 
 class aside(ScrollableFrame):
     def __init__(self, root, **kwargs):
