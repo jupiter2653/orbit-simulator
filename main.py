@@ -137,7 +137,6 @@ class section(tk.Canvas):
         self.isPaused = False
         tk.Canvas.__init__(self, self.root, background="black", **kwargs)
         self.pack(fill=tk.BOTH, side="left", expand=True)
-        self.bind("<Button-1>", self.leftClickHandler)
         self.dragging = None
         self.bind("<ButtonPress-1>", self.dragStart)
         self.bind("<ButtonRelease-1>", self.dragStop)
@@ -173,19 +172,19 @@ class section(tk.Canvas):
     def drawCircle(self, radius, centerX, centerY, color):
         self.create_oval(centerX-radius, centerY-radius, centerX+radius,
                          centerY+radius, fill=color)
-
-    def leftClickHandler(self,e):
-        if e.x >= self.winfo_width()-self.pPlayPause.width()-10 and e.y <= self.pPlayPause.height()-10: #Pause button
+        
+    def dragStart(self,e):
+        if e.x >= self.winfo_width()-self.pPlayPause.width()-10 and e.y <= self.pPlayPause.height()+10: #Pause button
             if not self.isPaused:
                 self.isPaused = True
             else:
                 self.isPaused = False
                 self.drawCanvas()
-    def dragStart(self,e):
-        for name, so in self.root.spacialObjects.items(): #Drag and Drop
-            if e.x <= so.x+so.radius/ECHELLE_DIST+10 and e.x >= so.x-so.radius/ECHELLE_DIST-10 and e.y <= so.y-so.radius/ECHELLE_DIST+10 and e.y >= so.y-so.radius/ECHELLE_DIST-10:
-                self.dragging = so
-                return
+        else:
+            for name, so in self.root.spacialObjects.items(): #Drag and Drop
+                if e.x <= so.x+so.radius/ECHELLE_DIST+10 and e.x >= so.x-so.radius/ECHELLE_DIST-10 and e.y <= so.y-so.radius/ECHELLE_DIST+10 and e.y >= so.y-so.radius/ECHELLE_DIST-10:
+                    self.dragging = so
+                    return
     def dragStop(self,e):
         self.dragging = None
         
@@ -361,8 +360,8 @@ class addObjectWindow(tk.Frame):
 
 
 
-        FrameVector = tk.LabelFrame(object_registered,text="Mouvement (Vecteur sous la forme x;y en m/s)")
-        FrameVector.grid(row=1,column=2,columnspan=2, padx=20, pady=20)
+        FrameVector = tk.LabelFrame(object_registered,text="Mouvement (Vecteur sous la forme x;y en m.s-1)")
+        FrameVector.grid(row=1,column=2,columnspan=3, padx=20, pady=20)
         self.mvt = tk.StringVar()
         self.KnownEntries["vector"] = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
         self.KnownEntries["vector"].pack(padx=10, pady=10)
@@ -423,7 +422,7 @@ class addObjectWindow(tk.Frame):
         self.entries["massPow"] = tk.Entry(FrameMass, textvariable=massPow, width=4)
         self.entries["massPow"].pack(side = tk.LEFT, padx=5, pady=10)
 
-        FrameVector = tk.LabelFrame(new_object,text="Mouvement (Vecteur sous la forme x;y en m.s)")
+        FrameVector = tk.LabelFrame(new_object,text="Mouvement (Vecteur sous la forme x;y en m.s-1)")
         FrameVector.grid(row=2,column=2, padx=20, pady=20)
         self.mvt = tk.StringVar()
         self.entries["vector"] = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
