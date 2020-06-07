@@ -9,8 +9,6 @@ from PIL import Image, ImageTk
 ECHELLE_DIST = 150*10**9/300  # 1px <-> ECHELLE_DIST m
 ECHELLE_TPS = (3.154e+7)/100  # 1 frame <-> ECHELLE_TPS s
 
-def test_placeholder():
-    pass
 
 class SpacialObject:
     def __init__(self, radius, mass, x, y, color, mvt):
