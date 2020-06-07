@@ -6,8 +6,8 @@ import math as m
 import pandas as pd
 from PIL import Image, ImageTk 
 
-ECHELLE_DIST = (150*10**9)/300  # 1px <-> ECHELLE_DIST m
-ECHELLE_TPS = 600  # 1 frame <-> ECHELLE_TPS s
+ECHELLE_DIST = 150*10**9/300  # 1px <-> ECHELLE_DIST m
+ECHELLE_TPS = (3.154e+7)/100  # 1 frame <-> ECHELLE_TPS s
 
 def test_placeholder():
     pass
@@ -34,8 +34,8 @@ class SpacialObject:
         except AttributeError:
             pass
         self.deplacementVector = self.deplacementVector + deltaV
-        self.x += self.deplacementVector[0]
-        self.y += self.deplacementVector[1]
+        self.x += self.deplacementVector[0]*ECHELLE_TPS/ECHELLE_DIST
+        self.y += self.deplacementVector[1]*ECHELLE_TPS/ECHELLE_DIST
         self.lastPos.append((self.x,self.y))
         if len(self.lastPos) >= 200:
             self.lastPos = self.lastPos[-200:]
@@ -87,7 +87,7 @@ class SpacialObject:
         return sumForces*ECHELLE_TPS/self.mass
 
     def getSpeed(self):
-        return self.norme(self.deplacementVector)*ECHELLE_DIST/ECHELLE_TPS
+        return self.norme(self.deplacementVector)
 
     def setSpeed(self,s):
         self.deplacementVector = self.getUnitVector(0,0,self.deplacementVector[0],self.deplacementVector[1])*s
@@ -335,7 +335,7 @@ class addObjectWindow(tk.Frame):
 
 
 
-        FrameVector = tk.LabelFrame(object_registered,text="Mouvement (Vecteur sous la forme x;y)")
+        FrameVector = tk.LabelFrame(object_registered,text="Mouvement (Vecteur sous la forme x;y en m/s)")
         FrameVector.grid(row=1,column=2,columnspan=2, padx=20, pady=20)
         self.mvt = tk.StringVar()
         self.KnownEntries["vector"] = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
@@ -397,7 +397,7 @@ class addObjectWindow(tk.Frame):
         self.entries["massPow"] = tk.Entry(FrameMass, textvariable=massPow, width=4)
         self.entries["massPow"].pack(side = tk.LEFT, padx=5, pady=10)
 
-        FrameVector = tk.LabelFrame(new_object,text="Mouvement (Vecteur sous la forme x;y)")
+        FrameVector = tk.LabelFrame(new_object,text="Mouvement (Vecteur sous la forme x;y en m.s)")
         FrameVector.grid(row=2,column=2, padx=20, pady=20)
         self.mvt = tk.StringVar()
         self.entries["vector"] = tk.Entry(FrameVector, textvariable=self.mvt, width=30)
