@@ -121,15 +121,14 @@ class mainInterface(tk.Frame):
         tk.Frame.__init__(self, fenetre, **kwargs)
         self.pack(fill=tk.BOTH, expand=True)
 
-        self.spacialObjects = {
-#                "Earth": SpacialObject(5, 3e16, 300, 200, "blue",[2,0]),
-#                "Sun": SpacialObject(5, 3e16, 300, 350, "yellow",[-2,0]),
-#                "Mars": SpacialObject(5, 0.0001, 300, 275, "red",[-1,-1])
-                #"Jsp": SpacialObject(5, 3*10**15, 200, 400, "white",[1,0]),
-                #"Jsp2": SpacialObject(5, 3*10**15, 500, 400, "white",[1,0]),
-            }
+        self.spacialObjects = {}
+        
         self.shownSection = section(self)
         self.shownAside = aside(self,highlightthickness=0)
+        
+    def deleteSo(self,name):
+        del self.spacialObjects[name]
+        self.shownAside.update()
 
 
 class section(tk.Canvas):
@@ -198,7 +197,7 @@ class aside(ScrollableFrame):
         objectFrames = []
         i = 0
         for name, so in self.root.spacialObjects.items():
-            objectFrames.append(objectFrame(self.scrollable_frame, name, so))
+            objectFrames.append(objectFrame(self.scrollable_frame, name, so, self.root))
             i += 1
 
     def showAddObject(self):
@@ -213,10 +212,11 @@ class aside(ScrollableFrame):
 
 
 class objectFrame(tk.Frame):
-    def __init__(self, root, name, so):
+    def __init__(self, root, name, so, mI):
         self.name = name
         self.so = so
         self.root = root
+        self.mI = mI
         self.isSpeedPaused = False
         so.objectFrame = self
 
@@ -225,9 +225,14 @@ class objectFrame(tk.Frame):
 
         tk.Label(self, text=name, background="white",
                  width=40).grid(padx=5, pady=5, row=0, column=0, columnspan=10)
+        
+        buttonDel = tk.Button(self,
+                                    text="X",
+                                    command=self.delSo)
+        buttonDel.grid(row=0,
+                          column=8)
 
         # Mass
-
         self.massVarNum = tk.DoubleVar(value=self.getScienti(so.mass)[0][:5])
         self.massVarPow = tk.IntVar(value=self.getScienti(so.mass)[1])
 
@@ -296,6 +301,9 @@ class objectFrame(tk.Frame):
 
     def getDec(self,n):
         return n[0]*10**n[1]
+    
+    def delSo(self):
+        self.mI.deleteSo(self.name)
 
 
 class addObjectWindow(tk.Frame):
