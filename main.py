@@ -158,7 +158,6 @@ class section(tk.Canvas):
 
         # On fait déplace puis dessine chaque objet
         for name, so in self.root.spacialObjects.items():
-            #so.drawVectors(self)
             so.move()            
             self.create_text(so.x, so.y+so.radius/ECHELLE_DIST+5, text=name, fill="white")
             self.showSpacialObject(so)
@@ -220,6 +219,7 @@ class aside(ScrollableFrame):
 
     def showAddObject(self):
         root = tk.Tk()
+        root.title('Ajouter un objet')
         addObjectWindow(root,self.root)
         root.mainloop()
 
